@@ -16,7 +16,73 @@ admin.initializeApp({
 app.use(express.json());
 app.use(cors());
 
+//verify firebase token
+const verifyFirebaseToken = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
 
+  try {
+    const userInfo = await admin.auth().verifyIdToken(token);
+    req.token_email = userInfo.email;
+    console.log("after token validation ", userInfo);
+    next();
+  } catch {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+};
+
+    //api for add car data to db
+
+    const MAX_CARS = 5;
+
+    app.post("/cars", verifyFirebaseToken, async (req, res) => {
+      try {
+        const { userEmail, ...car } = req.body;
+
+        const count = await carsCollection.countDocuments({ userEmail });
+
+        if (count >= MAX_CARS) {
+          return res.status(429).send({
+            message: "Maximum 5 cars allowed",
+          });
+        }
+
+        const newCar = {
+          ...car,
+          userEmail,
+          created_at: new Date(),
+        };
+
+        const result = await carsCollection.insertOne(newCar);
+        res.send(result);
+      } catch {
+        res.status(500).send({ message: "Failed to add car" });
+      }
+    });
+
+    // delete api
+    app.delete("/cars/:id", verifyFirebaseToken, async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await carsCollection.deleteOne(query);
+        res.send(result);
+      } catch {
+        res.status(500).send({ message: "Failed to add car" });
+      }
+    });
+
+    console.log("Connected to MongoDB!");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+  }
+}
+run().catch(console.dir);
 
 app.get("/", (req, res) => {
   res.send("Car Xpress server is running!");
