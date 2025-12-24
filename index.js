@@ -91,6 +91,24 @@ async function run() {
       }
     });
 
+    //api for single car data
+    app.get("/cars/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const options = {
+          projection: {
+            created_at: 0,
+          },
+        };
+
+        const result = await carsCollection.findOne(query, options);
+        res.send(result);
+      } catch {
+        res.status(500).send({ message: "Failed to fetch car" });
+      }
+    });
+
 
 
     //api for add car data to db
