@@ -36,6 +36,19 @@ const verifyFirebaseToken = async (req, res, next) => {
   }
 };
 
+//port and clients
+const port = process.env.PORT || 5000;
+const uri = process.env.URI;
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+
+
     //api for add car data to db
 
     const MAX_CARS = 5;
