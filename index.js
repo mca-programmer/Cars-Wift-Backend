@@ -47,6 +47,50 @@ const client = new MongoClient(uri, {
   },
 });
 
+async function run() {
+  try {
+    // await client.connect();
+
+    //DB and collection
+    const db = client.db("cars_wift_db");
+    const carsCollection = db.collection("cars");
+
+    //cars apis here:)
+
+    //get all cars data from db
+    app.get("/cars", async (req, res) => {
+      try {
+        const { limit, search } = req.query;
+        let query = {};
+        const options = {
+          projection: {
+            created_at: 0,
+            shortDescription: 0,
+            userName: 0,
+            userEmail: 0,
+            phone: 0,
+          },
+        };
+
+        if (search) {
+          query.brand = { $regex: search, $options: "i" };
+        }
+
+        let cursor = carsCollection
+          .find(query, options)
+          .sort({ created_at: -1 });
+
+        if (limit) {
+          cursor = cursor.limit(parseInt(limit));
+        }
+
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch {
+        res.status(500).send({ message: "Failed to fetch cars" });
+      }
+    });
+
 
 
     //api for add car data to db
