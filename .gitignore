@@ -1,0 +1,5 @@
+.env
+node_modules
+car-xpress-firebase-admin-sdk.json
+.vercel
+.env*.local
