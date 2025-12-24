@@ -109,7 +109,30 @@ async function run() {
       }
     });
 
+    //api for getting car data for gmail
+    app.get("/my-cars", verifyFirebaseToken, async (req, res) => {
+      try {
+        const email = req.query.email;
 
+        if (!email) {
+          return res.status(400).send({ message: "Email is required" });
+        }
+
+        const options = {
+          projection: {
+            title: 1,
+            brand: 1,
+            image: 1,
+          },
+        };
+
+        const query = { userEmail: email };
+        const result = await carsCollection.find(query, options).toArray();
+        res.send(result);
+      } catch {
+        res.status(500).send({ message: "Failed to fetch cars" });
+      }
+    });
 
     //api for add car data to db
 
